@@ -35,7 +35,7 @@
 
           <!-- Configuration  -->
           <node name="dynamic_reconfigure_load_color" pkg="dynamic_reconfigure" type="dynparam" args="load  /$(arg prefix)/resize_kinect_color $(find kinect2_bagplayer)/config/resize_kinect_color.yaml" />
-          <node name="dynamic_reconfigure_load_depth" pkg="dynamic_reconfigure" type="dynparam" args="load  /$(arg prefix)/resize_kinect_depth $(arg kinect2_bagplayer)/config/resize_kinect_depth.yaml" />
+          <node name="dynamic_reconfigure_load_depth" pkg="dynamic_reconfigure" type="dynparam" args="load  /$(arg prefix)/resize_kinect_depth $(find kinect2_bagplayer)/config/resize_kinect_depth.yaml" />
 
 
           <!-- Nodelet itself  -->
