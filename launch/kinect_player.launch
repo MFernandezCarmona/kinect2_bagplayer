@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<!-- Cast from full hd to qhd images in kinect
+  Assumptioms:
+   - You are going to use a rosbag (hence use sim time true)
+   - Your rosbag has a full tf tree with kinect names on it
+   - Your rosbag contains at least these three topics from the kinect2 (in its camera_namespace)
+   -  /hd/image_color
+   -  /hd/camera_info
+   -  /sd/image_depth
+
+  You will obtaint the following kinect2 topics (in its camera_namespace)
+  - /qhd/image_color_rect
+  - /qhd/image_depth_rect
+  - /qhd/camera_info
+
+  TODO: add pointcloud and/or other topics
+-->
+
+<launch>
+
+
+      <!-- Setup simulation time to use for rosbag -->
+      <param name="use_sim_time" value="true"/>
+
+      <arg name="robot_id" default="5"/>
+      <arg name="prefix" default="robot$(arg robot_id)"/>
+      <arg name="topic_prefix" default="/$(arg prefix)"/>
+
+      <arg name="camera_namespace" value="$(arg topic_prefix)/sensors/kinect2" />
+
+      <group ns="$(arg prefix)">
+
+          <!-- Nodelet manager  -->
+          <node pkg="nodelet" type="nodelet" name="kinect_nodelet_manager" args="manager"/>
+
+          <!-- Configuration  -->
+          <node name="dynamic_reconfigure_load_color" pkg="dynamic_reconfigure" type="dynparam" args="load  /$(arg prefix)/resize_kinect_color $(find kinect2_bagplayer)/config/resize_kinect_color.yaml" />
+          <node name="dynamic_reconfigure_load_depth" pkg="dynamic_reconfigure" type="dynparam" args="load  /$(arg prefix)/resize_kinect_depth $(arg kinect2_bagplayer)/config/resize_kinect_depth.yaml" />
+
+
+          <!-- Nodelet itself  -->
+          <node pkg="nodelet" type="nodelet" name="resize_kinect_color" args="load image_proc/resize kinect_nodelet_manager --no-bond" respawn="true">
+               <remap from="image" to="$(arg camera_namespace)/hd/image_color" />
+               <remap from="camera_info" to="$(arg camera_namespace)/hd/camera_info" />
+               <remap from="~image" to="$(arg camera_namespace)/qhd/image_color_rect" />
+               <remap from="~camera_info" to="$(arg camera_namespace)/qhd/camera_info" />
+          </node>
+
+          <!-- Nodelet itself  -->
+          <node pkg="nodelet" type="nodelet" name="resize_kinect_depth" args="load image_proc/resize kinect_nodelet_manager --no-bond" respawn="true">
+               <remap from="image" to="$(arg camera_namespace)/sd/image_depth" />
+               <remap from="camera_info" to="$(arg camera_namespace)/sd/camera_info" />
+               <remap from="~image" to="$(arg camera_namespace)/qhd/image_depth_rect" />
+          </node>
+
+
+          <!-- TODO: CHECK THIS IN CASE YOU NEED THE POINT CLOUD ...
+             Generate qhd point cloud (960 x 540)
+             <node pkg="nodelet" type="nodelet" name="$(arg base_name)_points_xyzrgb_qhd" machine="$(arg machine)"
+                args="load depth_image_proc/point_cloud_xyzrgb $(arg nodelet_manager)" respawn="$(arg respawn)">
+               <remap from="rgb/camera_info"             to="$(arg base_name)/qhd/camera_info"/>
+               <remap from="rgb/image_rect_color"        to="$(arg base_name)/qhd/image_color_rect"/>
+               <remap from="depth_registered/image_rect" to="$(arg base_name)/qhd/image_depth_rect"/>
+               <remap from="depth_registered/points"     to="$(arg base_name)/qhd/points"/>
+               <param name="queue_size" type="int" value="$(arg queue_size)"/>
+             </node>
+
+             Republish the compressed images out
+             <node name="republish_color" type="republish" pkg="image_transport" output="screen" args="compressed in:=/kinect/qhd/image_color_rect raw out:=/kinect/qhd/image_color_rect" />
+             <node name="republish_depth" type="republish" pkg="image_transport" output="screen" args="compressed in:=/kinect/qhd/image_depth_rect raw out:=/kinect/qhd/image_depth_rect" />
+          -->
+
+
+
+
+        </group>
+
+</launch>
