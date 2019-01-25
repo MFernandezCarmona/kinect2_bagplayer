@@ -19,9 +19,6 @@
 <launch>
 
 
-      <!-- Setup simulation time to use for rosbag -->
-      <param name="use_sim_time" value="true"/>
-
       <arg name="robot_id" default="5"/>
       <arg name="prefix" default="robot$(arg robot_id)"/>
       <arg name="topic_prefix" default="/$(arg prefix)"/>
